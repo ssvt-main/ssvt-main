@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSVT Coaching Jaiptana</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/site.js" defer></script>
+  </head>
+  <body data-page="home">
+    <header class="site-header">
+      <nav class="navbar container" aria-label="Main navigation">
+        <a class="brand" href="/">
+          <span class="brand-mark">S</span>
+          <span>
+            <strong>SSVT Coaching</strong>
+            <small>Jaiptana</small>
+          </span>
+        </a>
+        <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="nav-links">
+          <a class="active" href="/">Home</a>
+          <a href="/about.html">About</a>
+          <a href="/student-data.html">Student Data</a>
+          <a href="/contact.html">Contact</a>
+          <a href="https://notice-board-3pyh.onrender.com/">Notice</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Classes 6th to 10th</p>
+            <h1>SSVT Coaching</h1>
+            <p>
+              A focused learning space in Jaiptana for school students, regular
+              testing, and result-driven guidance.
+            </p>
+            <div class="hero-actions">
+              <a class="btn primary" href="/student-data.html">Student Data</a>
+              <a class="btn primary" href="https://notes-k2cw.onrender.com/student">Notes</a>
+            </div>
+          </div>
+          <div class="hero-panel" aria-label="Result highlights">
+            <div class="metric">
+              <span>Classes</span>
+              <strong>6-10</strong>
+            </div>
+            <div class="metric">
+              <span>Result Board</span>
+              <strong>Live</strong>
+            </div>
+            <div class="metric">
+              <span>Tests</span>
+              <strong>Ranked</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <div class="container section-heading with-control">
+          <div>
+            <p class="eyebrow">Topper list</p>
+            <h2>Class Wise Results</h2>
+          </div>
+          <label class="filter-control">
+            <span>Year</span>
+            <select id="yearFilter" aria-label="Filter toppers by year"></select>
+          </label>
+        </div>
+        <div id="topperSections" class="container class-stack" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <p>&copy; <span data-year></span> SSVT Coaching, Jaiptana. All rights reserved.</p>
+        <div class="footer-socials" aria-label="Social links">
+          <a href="#" aria-label="YouTube">YT</a>
+          <a href="#" aria-label="Facebook">FB</a>
+          <a href="#" aria-label="Instagram">IG</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

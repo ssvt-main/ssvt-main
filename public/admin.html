@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - SSVT Coaching</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/site.js" defer></script>
+  </head>
+  <body data-page="admin">
+    <header class="site-header">
+      <nav class="navbar container" aria-label="Main navigation">
+        <a class="brand" href="/">
+          <span class="brand-mark">S</span>
+          <span>
+            <strong>SSVT Coaching</strong>
+            <small>Admin</small>
+          </span>
+        </a>
+        <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="/about.html">About</a>
+          <a href="/student-data.html">Student Data</a>
+          <a href="/contact.html">Contact</a>
+          <a class="admin-link active" href="https://notice-board-3pyh.onrender.com/publish.html">Notice</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-title">
+        <div class="container">
+          <p class="eyebrow">Admin Panel</p>
+          <h1>Manage SSVT Website Data</h1>
+          <p>Add, edit, and delete public records for local testing.</p>
+        </div>
+      </section>
+
+      <section class="section-block admin-section">
+        <div class="container admin-grid">
+          <article class="admin-card">
+            <h2>Home Toppers</h2>
+            <form id="topperForm" class="admin-form">
+              <input type="hidden" name="id" />
+              <input type="hidden" name="photoCurrent" />
+              <div class="form-row">
+                <label>
+                  <span>Class</span>
+                  <select name="classLevel" required>
+                    <option value="10">10th</option>
+                    <option value="9">9th</option>
+                    <option value="8">8th</option>
+                    <option value="7">7th</option>
+                    <option value="6">6th</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Year</span>
+                  <input type="number" name="year" min="2000" max="2100" required />
+                </label>
+                <label>
+                  <span>Rank</span>
+                  <input type="number" name="rank" min="1" required />
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  <span>Student Name</span>
+                  <input type="text" name="name" maxlength="80" required />
+                </label>
+                <label>
+                  <span>Percentage</span>
+                  <input type="number" name="percentage" min="1" max="100" step="0.01" required />
+                </label>
+              </div>
+              <label>
+                <span>Student Photo</span>
+                <input type="file" name="photoFile" accept="image/*" />
+              </label>
+              <div class="form-actions">
+                <button class="btn primary" type="submit">Save Topper</button>
+                <button class="btn secondary" type="reset" data-reset-form>Clear</button>
+              </div>
+            </form>
+            <div id="topperAdminList" class="admin-list"></div>
+          </article>
+
+          <article class="admin-card">
+            <h2>Event Pictures</h2>
+            <form id="eventForm" class="admin-form">
+              <input type="hidden" name="id" />
+              <input type="hidden" name="imageCurrent" />
+              <div class="form-row">
+                <label>
+                  <span>Title</span>
+                  <input type="text" name="title" maxlength="90" required />
+                </label>
+                <label>
+                  <span>Date</span>
+                  <input type="date" name="date" required />
+                </label>
+              </div>
+              <label>
+                <span>Picture Upload</span>
+                <input type="file" name="imageFile" accept="image/*" />
+              </label>
+              <label>
+                <span>Picture URL</span>
+                <input type="url" name="imageUrl" placeholder="https://example.com/photo.jpg" />
+              </label>
+              <label>
+                <span>Caption</span>
+                <textarea name="caption" rows="3" maxlength="220"></textarea>
+              </label>
+              <div class="form-actions">
+                <button class="btn primary" type="submit">Save Event</button>
+                <button class="btn secondary" type="reset" data-reset-form>Clear</button>
+              </div>
+            </form>
+            <div id="eventAdminList" class="admin-list"></div>
+          </article>
+
+          <article class="admin-card wide">
+            <h2>Test Results</h2>
+            <form id="testForm" class="admin-form">
+              <input type="hidden" name="id" />
+              <div class="form-row">
+                <label>
+                  <span>Class</span>
+                  <select name="classLevel" required>
+                    <option value="10">10th</option>
+                    <option value="9">9th</option>
+                    <option value="8">8th</option>
+                    <option value="7">7th</option>
+                    <option value="6">6th</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Test Name</span>
+                  <input type="text" name="testName" maxlength="80" required />
+                </label>
+                <label>
+                  <span>Test Date</span>
+                  <input type="date" name="testDate" required />
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  <span>Student Name</span>
+                  <input type="text" name="studentName" maxlength="80" required />
+                </label>
+                <label>
+                  <span>Total Marks</span>
+                  <input type="number" name="totalMarks" min="1" required />
+                </label>
+                <label>
+                  <span>Obtained Marks</span>
+                  <input type="number" name="obtainedMarks" min="0" required />
+                </label>
+              </div>
+              <div class="form-actions">
+                <button class="btn primary" type="submit">Save Result</button>
+                <button class="btn secondary" type="reset" data-reset-form>Clear</button>
+              </div>
+            </form>
+            <div id="testAdminList" class="admin-list"></div>
+          </article>
+
+          <article class="admin-card wide">
+            <h2>Public Reviews</h2>
+            <div id="reviewAdminList" class="admin-list"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <p>&copy; <span data-year></span> SSVT Coaching, Jaiptana. All rights reserved.</p>
+        <div class="footer-socials" aria-label="Social links">
+          <a href="#" aria-label="YouTube">YT</a>
+          <a href="#" aria-label="Facebook">FB</a>
+          <a href="#" aria-label="Instagram">IG</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

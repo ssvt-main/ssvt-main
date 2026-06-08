@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ssvt-coaching
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: ssvt_coaching
+      - key: SEED_DATABASE
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
