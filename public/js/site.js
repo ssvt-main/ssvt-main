@@ -1,5 +1,5 @@
 (function () {
-  const RENDER_API_BASE_URL = "https://ssvt-site-1.onrender.com";
+  const RENDER_API_BASE_URL = "https://ssvt-main.onrender.com";
   const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
   const API_BASE_URL = LOCAL_HOSTS.has(window.location.hostname) ? "" : RENDER_API_BASE_URL;
   const classOrder = [10, 9, 8, 7, 6];
