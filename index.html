@@ -1,1 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome | Coaching Institute</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+    radial-gradient(circle at center,#1d3557,#0a192f,#000);
+    position:relative;
+}
+
+/* Animated Background */
+.background{
+    position:absolute;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+.background::before{
+    content:"";
+    position:absolute;
+    width:200%;
+    height:200%;
+    background:
+    repeating-linear-gradient(
+        45deg,
+        rgba(255,215,0,0.03) 0px,
+        rgba(255,215,0,0.03) 2px,
+        transparent 2px,
+        transparent 50px
+    );
+    animation:rotateBg 40s linear infinite;
+}
+
+@keyframes rotateBg{
+    from{
+        transform:rotate(0deg);
+    }
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+/* Light Glow */
+.light{
+    position:absolute;
+    width:600px;
+    height:600px;
+    background:radial-gradient(circle,
+    rgba(255,215,0,0.15),
+    transparent 70%);
+    animation:pulse 4s infinite alternate;
+}
+
+@keyframes pulse{
+    from{
+        transform:scale(1);
+    }
+    to{
+        transform:scale(1.3);
+    }
+}
+
+/* Content */
+.container{
+    position:relative;
+    z-index:10;
+    text-align:center;
+}
+
+/* Welcome Text */
+.welcome{
+    font-family:'Great Vibes',cursive;
+    font-size:9rem;
+    color:#FFD700;
+    overflow:hidden;
+    white-space:nowrap;
+    width:0;
+    margin:auto;
+    border-right:4px solid #FFD700;
+
+    animation:
+    typing 3s steps(20,end) forwards,
+    blink 0.8s infinite;
+
+    text-shadow:
+    0 0 15px #FFD700,
+    0 0 30px #FFD700,
+    0 0 60px #FFD700,
+    0 0 100px #FFD700;
+}
+
+@keyframes typing{
+    from{
+        width:0;
+    }
+    to{
+        width:100%;
+    }
+}
+
+@keyframes blink{
+    50%{
+        border-color:transparent;
+    }
+}
+
+/* Subtitle */
+.tagline{
+    color:white;
+    font-size:1.4rem;
+    letter-spacing:4px;
+    margin-top:15px;
+    opacity:0;
+    animation:fadeUp 1.5s forwards;
+    animation-delay:2.5s;
+}
+
+/* Institute Name */
+.institute{
+    margin-top:25px;
+    font-size:2.2rem;
+    color:white;
+    font-weight:700;
+    letter-spacing:8px;
+
+    opacity:0;
+    animation:fadeUp 1.5s forwards;
+    animation-delay:3.2s;
+}
+
+/* Decorative Line */
+.line{
+    width:0;
+    height:3px;
+    background:#FFD700;
+    margin:20px auto;
+    box-shadow:0 0 20px #FFD700;
+    animation:lineGrow 1.5s forwards;
+    animation-delay:3.5s;
+}
+
+@keyframes lineGrow{
+    to{
+        width:350px;
+    }
+}
+
+/* Fade Animation */
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(30px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* Floating Educational Icons */
+.symbol{
+    position:absolute;
+    color:rgba(255,255,255,0.18);
+    font-size:2.5rem;
+    animation:floatSymbol linear infinite;
+}
+
+@keyframes floatSymbol{
+    from{
+        transform:translateY(110vh) rotate(0deg);
+    }
+    to{
+        transform:translateY(-120vh) rotate(360deg);
+    }
+}
+
+/* Particles */
+.particle{
+    position:absolute;
+    background:white;
+    border-radius:50%;
+    opacity:0.5;
+    animation:particleMove linear infinite;
+}
+
+@keyframes particleMove{
+    from{
+        transform:translateY(100vh);
+        opacity:0;
+    }
+    30%{
+        opacity:1;
+    }
+    to{
+        transform:translateY(-100vh);
+        opacity:0;
+    }
+}
+
+/* Fade Out Before Redirect */
+.fadeOut{
+    animation:fadeScreen 1s forwards;
+}
+
+@keyframes fadeScreen{
+    to{
+        opacity:0;
+        transform:scale(1.1);
+    }
+}
+
+@media(max-width:768px){
+
+    .welcome{
+        font-size:5rem;
+    }
+
+    .institute{
+        font-size:1.2rem;
+        letter-spacing:4px;
+    }
+
+    .tagline{
+        font-size:1rem;
+    }
+
+    .line{
+        width:220px !important;
+    }
+}
+
+</style>
+</head>
+<body>
+
+<div class="background"></div>
+<div class="light"></div>
+
+<!-- Educational Floating Symbols -->
+<div class="symbol" style="left:5%;animation-duration:16s;">📚</div>
+<div class="symbol" style="left:15%;animation-duration:18s;">✏️</div>
+<div class="symbol" style="left:25%;animation-duration:20s;">📖</div>
+<div class="symbol" style="left:40%;animation-duration:17s;">🎓</div>
+<div class="symbol" style="left:55%;animation-duration:22s;">π</div>
+<div class="symbol" style="left:70%;animation-duration:19s;">∑</div>
+<div class="symbol" style="left:82%;animation-duration:21s;">√</div>
+<div class="symbol" style="left:92%;animation-duration:18s;">A+</div>
+
+<div class="container">
+
+    <h1 class="welcome">Welcome</h1>
+
+    <p class="tagline">
+        EMPOWERING MINDS • BUILDING FUTURES
+    </p>
+
+    <div class="line"></div>
+
+    <div class="institute">
+        YOUR COACHING INSTITUTE NAME
+    </div>
+
+</div>
+
+<script>
+
+/* Floating Particles */
+
+for(let i=0;i<120;i++){
+
+    let particle=document.createElement("div");
+
+    particle.classList.add("particle");
+
+    let size=Math.random()*4+1;
+
+    particle.style.width=size+"px";
+    particle.style.height=size+"px";
+
+    particle.style.left=Math.random()*100+"%";
+
+    particle.style.animationDuration=
+    (Math.random()*8+6)+"s";
+
+    particle.style.animationDelay=
+    Math.random()*5+"s";
+
+    document.body.appendChild(particle);
+}
+
+/* Auto Redirect After 5 Seconds */
+
+setTimeout(()=>{
+
+    document.body.classList.add("fadeOut");
+
+    setTimeout(()=>{
+
+        // Replace with your next page URL
+        window.location.href="https://ssvt-main-1.onrender.com/";
+
+    },1000);
+
+},5000);
+
+</script>
+
+</body>
+</html>
