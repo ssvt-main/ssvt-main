@@ -16,3 +16,7 @@ services:
         value: "true"
       - key: CORS_ORIGINS
         value: "*"
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_SESSION_HOURS
+        value: "12"
