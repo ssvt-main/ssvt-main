@@ -30,9 +30,16 @@ Create a MongoDB Atlas cluster, then copy the connection string. Add these envir
 MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/ssvt_coaching?retryWrites=true&w=majority
 MONGODB_DB_NAME=ssvt_coaching
 SEED_DATABASE=true
+CORS_ORIGINS=*
+ADMIN_PASSWORD=your-secure-admin-password
+ADMIN_SESSION_HOURS=12
 ```
 
 `SEED_DATABASE=true` adds the starter topper/event/review/test data only when all MongoDB collections are empty. Set it to `false` if you want an empty database.
+
+`CORS_ORIGINS=*` allows a frontend hosted on GitHub Pages or another domain to call the Render backend. For tighter security, replace `*` with your exact frontend URL.
+
+`ADMIN_PASSWORD` is required for the admin panel. Set it in Render environment variables, not in the code.
 
 ## Render Deployment
 
