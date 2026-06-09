@@ -15,7 +15,16 @@
   if (navToggle && navLinks) {
     navToggle.addEventListener("click", () => {
       const isOpen = navLinks.classList.toggle("open");
+      navToggle.classList.toggle("active", isOpen);
       navToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+
+    navLinks.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        navLinks.classList.remove("open");
+        navToggle.classList.remove("active");
+        navToggle.setAttribute("aria-expanded", "false");
+      });
     });
   }
 
@@ -406,9 +415,26 @@
     if (phoneText) phoneText.textContent = phone;
   }
 
+  function renderContactMap() {
+    const mapShell = document.querySelector("#contactMap");
+    const mapFrame = document.querySelector("#locationMap");
+    const directions = document.querySelector("#mapDirections");
+    if (!mapShell || !mapFrame || !directions) return;
+
+    const lat = mapShell.dataset.mapLat || "";
+    const lng = mapShell.dataset.mapLng || "";
+    const fallbackQuery = mapShell.dataset.mapQuery || "SSVT Coaching Jaiptana";
+    const query = lat && lng ? `${lat},${lng}` : fallbackQuery;
+    const encodedQuery = encodeURIComponent(query);
+
+    mapFrame.src = `https://www.google.com/maps?q=${encodedQuery}&z=16&output=embed`;
+    directions.href = `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`;
+  }
+
   async function initContact() {
     const data = await loadData();
     renderContactDetails(data.contact);
+    renderContactMap();
   }
 
   function fileToDataUrl(file) {
