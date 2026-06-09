@@ -126,6 +126,7 @@ textarea {
   border-radius: 8px;
   background: var(--surface);
   padding: 9px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .nav-toggle span {
@@ -133,6 +134,26 @@ textarea {
   height: 2px;
   background: var(--ink);
   margin: 5px 0;
+  transform-origin: center;
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+
+.nav-toggle.active {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(216, 155, 34, 0.18);
+}
+
+.nav-toggle.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle.active span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.nav-toggle.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 .hero {
@@ -592,6 +613,33 @@ textarea {
   stroke-width: 1.8;
 }
 
+.map-block {
+  padding-top: 0;
+}
+
+.map-shell {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(24, 33, 29, 0.06);
+}
+
+.map-shell iframe {
+  width: 100%;
+  height: clamp(300px, 46vw, 460px);
+  border: 0;
+}
+
+.map-button {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 18px rgba(24, 33, 29, 0.14);
+}
+
 .table-wrap {
   overflow-x: auto;
   padding: 0 18px 18px;
@@ -790,18 +838,44 @@ textarea {
     top: 72px;
     right: 16px;
     left: 16px;
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: stretch;
-    border: 1px solid var(--line);
+    border: 1px solid transparent;
     border-radius: 8px;
     background: var(--surface);
-    padding: 10px;
+    padding: 0 10px;
     box-shadow: var(--shadow);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition:
+      max-height 260ms ease,
+      opacity 180ms ease,
+      transform 220ms ease,
+      padding 220ms ease,
+      border-color 180ms ease,
+      visibility 0s linear 260ms;
   }
 
   .nav-links.open {
-    display: flex;
+    border-color: var(--line);
+    max-height: 360px;
+    opacity: 1;
+    padding: 10px;
+    pointer-events: auto;
+    transform: translateY(0);
+    visibility: visible;
+    transition:
+      max-height 260ms ease,
+      opacity 180ms ease,
+      transform 220ms ease,
+      padding 220ms ease,
+      border-color 180ms ease,
+      visibility 0s linear 0s;
   }
 
   .hero-grid,
@@ -875,6 +949,12 @@ textarea {
   .section-block,
   .page-title {
     padding-block: 36px;
+  }
+
+  .map-button {
+    position: static;
+    width: calc(100% - 20px);
+    margin: 10px;
   }
 
   .admin-panel-nav {
