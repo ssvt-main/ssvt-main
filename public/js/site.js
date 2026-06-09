@@ -62,11 +62,13 @@
 
   async function api(path, options = {}) {
     const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    };
     const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json"
-      },
-      ...options
+      ...options,
+      headers
     });
 
     const data = await response.json().catch(() => ({}));
@@ -75,6 +77,51 @@
     }
 
     return data;
+  }
+
+  const ADMIN_TOKEN_KEY = "ssvtAdminToken";
+  const ADMIN_EXPIRES_KEY = "ssvtAdminExpiresAt";
+
+  function getAdminToken() {
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    const expiresAt = sessionStorage.getItem(ADMIN_EXPIRES_KEY);
+
+    if (!token || !expiresAt || Date.parse(expiresAt) <= Date.now()) {
+      clearAdminSession();
+      return "";
+    }
+
+    return token;
+  }
+
+  function setAdminSession(session) {
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, session.token);
+    sessionStorage.setItem(ADMIN_EXPIRES_KEY, session.expiresAt);
+  }
+
+  function clearAdminSession() {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+  }
+
+  async function adminApi(path, options = {}) {
+    const token = getAdminToken();
+    const headers = {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`
+    };
+
+    try {
+      return await api(path, {
+        ...options,
+        headers
+      });
+    } catch (error) {
+      if (error.message.toLowerCase().includes("admin login")) {
+        clearAdminSession();
+      }
+      throw error;
+    }
   }
 
   async function loadData() {
@@ -333,6 +380,37 @@
     });
   }
 
+  function phoneDigits(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function renderContactDetails(contact = {}) {
+    const email = contact.email || "ssvtcoaching@example.com";
+    const phone = contact.phone || "+91 98765 43210";
+    const whatsapp = contact.whatsapp || phone;
+    const whatsappNumber = phoneDigits(whatsapp);
+    const phoneNumber = phoneDigits(phone);
+
+    const emailButton = document.querySelector("#emailContactButton");
+    const whatsappButton = document.querySelector("#whatsappContactButton");
+    const phoneButton = document.querySelector("#phoneContactButton");
+    const emailText = document.querySelector("#emailContactText");
+    const whatsappText = document.querySelector("#whatsappContactText");
+    const phoneText = document.querySelector("#phoneContactText");
+
+    if (emailButton) emailButton.href = `mailto:${email}`;
+    if (whatsappButton) whatsappButton.href = `https://wa.me/${whatsappNumber}`;
+    if (phoneButton) phoneButton.href = `tel:+${phoneNumber}`;
+    if (emailText) emailText.textContent = email;
+    if (whatsappText) whatsappText.textContent = whatsapp;
+    if (phoneText) phoneText.textContent = phone;
+  }
+
+  async function initContact() {
+    const data = await loadData();
+    renderContactDetails(data.contact);
+  }
+
   function fileToDataUrl(file) {
     return new Promise((resolve, reject) => {
       if (!file) {
@@ -434,157 +512,293 @@
     if (!reviewList.innerHTML) reviewList.innerHTML = `<p class="empty-state">No reviews yet.</p>`;
   }
 
-  async function initAdmin() {
-    let data = await loadData();
-    renderAdmin(data);
+  function renderAdminContact(contact = {}) {
+    const contactForm = document.querySelector("#contactForm");
+    if (!contactForm) return;
 
+    contactForm.elements.email.value = contact.email || "";
+    contactForm.elements.phone.value = contact.phone || "";
+    contactForm.elements.whatsapp.value = contact.whatsapp || "";
+    contactForm.elements.youtube.value = contact.youtube === "#" ? "" : contact.youtube || "";
+    contactForm.elements.facebook.value = contact.facebook === "#" ? "" : contact.facebook || "";
+    contactForm.elements.instagram.value = contact.instagram === "#" ? "" : contact.instagram || "";
+  }
+
+  function setAdminPanel(panelId) {
+    const targetId = document.getElementById(panelId) ? panelId : "admin-home";
+
+    document.querySelectorAll(".admin-panel").forEach((panel) => {
+      panel.hidden = panel.id !== targetId;
+    });
+
+    document.querySelectorAll("[data-admin-panel]").forEach((link) => {
+      link.classList.toggle("active", link.dataset.adminPanel === targetId);
+    });
+  }
+
+  async function initAdmin() {
+    const loginPanel = document.querySelector("#adminLoginPanel");
+    const dashboard = document.querySelector("#adminDashboard");
+    const loginForm = document.querySelector("#adminLoginForm");
+    const loginMessage = document.querySelector("#adminLoginMessage");
+    const logoutButton = document.querySelector("#adminLogoutButton");
     const topperForm = document.querySelector("#topperForm");
     const eventForm = document.querySelector("#eventForm");
     const testForm = document.querySelector("#testForm");
+    const contactForm = document.querySelector("#contactForm");
+    const contactMessage = document.querySelector("#contactAdminMessage");
+    let data = null;
+    let handlersBound = false;
 
-    topperForm.elements.year.value = new Date().getFullYear();
-    testForm.elements.testDate.valueAsDate = new Date();
-    eventForm.elements.date.valueAsDate = new Date();
+    function showLogin(message = "") {
+      loginPanel.hidden = false;
+      dashboard.hidden = true;
+      loginMessage.textContent = message;
+    }
 
-    document.querySelectorAll("[data-reset-form]").forEach((button) => {
-      button.addEventListener("click", () => resetHidden(button.closest("form")));
-    });
+    async function refreshAdminData() {
+      data = await loadData();
+      renderAdmin(data);
+      renderAdminContact(data.contact);
+    }
 
-    topperForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(topperForm);
-      const id = formData.get("id");
-      const photoFile = topperForm.elements.photoFile.files[0];
-      const photo = (await fileToDataUrl(photoFile)) || formData.get("photoCurrent");
+    async function showDashboard() {
+      loginPanel.hidden = true;
+      dashboard.hidden = false;
 
-      await api(id ? `/api/toppers/${id}` : "/api/toppers", {
-        method: id ? "PUT" : "POST",
-        body: JSON.stringify({
-          classLevel: formData.get("classLevel"),
-          year: formData.get("year"),
-          rank: formData.get("rank"),
-          name: formData.get("name"),
-          percentage: formData.get("percentage"),
-          photo
-        })
-      });
+      if (!handlersBound) {
+        bindAdminHandlers();
+        handlersBound = true;
+      }
 
-      topperForm.reset();
-      resetHidden(topperForm);
+      setAdminPanel((window.location.hash || "#admin-home").slice(1));
+      await refreshAdminData();
+    }
+
+    function setFormDefaults() {
       topperForm.elements.year.value = new Date().getFullYear();
-      data = await loadData();
-      renderAdmin(data);
-    });
-
-    eventForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(eventForm);
-      const id = formData.get("id");
-      const uploadedImage = await fileToDataUrl(eventForm.elements.imageFile.files[0]);
-      const image = uploadedImage || formData.get("imageUrl") || formData.get("imageCurrent");
-
-      await api(id ? `/api/events/${id}` : "/api/events", {
-        method: id ? "PUT" : "POST",
-        body: JSON.stringify({
-          title: formData.get("title"),
-          date: formData.get("date"),
-          image,
-          caption: formData.get("caption")
-        })
-      });
-
-      eventForm.reset();
-      resetHidden(eventForm);
-      eventForm.elements.date.valueAsDate = new Date();
-      data = await loadData();
-      renderAdmin(data);
-    });
-
-    testForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(testForm);
-      const id = formData.get("id");
-
-      await api(id ? `/api/test-results/${id}` : "/api/test-results", {
-        method: id ? "PUT" : "POST",
-        body: JSON.stringify({
-          classLevel: formData.get("classLevel"),
-          testName: formData.get("testName"),
-          testDate: formData.get("testDate"),
-          totalMarks: formData.get("totalMarks"),
-          studentName: formData.get("studentName"),
-          obtainedMarks: formData.get("obtainedMarks")
-        })
-      });
-
-      testForm.reset();
-      resetHidden(testForm);
       testForm.elements.testDate.valueAsDate = new Date();
-      data = await loadData();
-      renderAdmin(data);
+      eventForm.elements.date.valueAsDate = new Date();
+    }
+
+    function bindAdminHandlers() {
+      setFormDefaults();
+
+      document.querySelectorAll("[data-reset-form]").forEach((button) => {
+        button.addEventListener("click", () => resetHidden(button.closest("form")));
+      });
+
+      document.querySelectorAll("[data-admin-panel]").forEach((link) => {
+        link.addEventListener("click", () => {
+          setAdminPanel(link.dataset.adminPanel);
+        });
+      });
+
+      window.addEventListener("hashchange", () => {
+        if (!dashboard.hidden) {
+          setAdminPanel((window.location.hash || "#admin-home").slice(1));
+        }
+      });
+
+      logoutButton.addEventListener("click", async () => {
+        try {
+          await adminApi("/api/admin/logout", { method: "POST" });
+        } catch (error) {
+          console.warn(error);
+        }
+        clearAdminSession();
+        showLogin("Logged out.");
+      });
+
+      topperForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(topperForm);
+        const id = formData.get("id");
+        const photoFile = topperForm.elements.photoFile.files[0];
+        const photo = (await fileToDataUrl(photoFile)) || formData.get("photoCurrent");
+
+        await adminApi(id ? `/api/toppers/${id}` : "/api/toppers", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify({
+            classLevel: formData.get("classLevel"),
+            year: formData.get("year"),
+            rank: formData.get("rank"),
+            name: formData.get("name"),
+            percentage: formData.get("percentage"),
+            photo
+          })
+        });
+
+        topperForm.reset();
+        resetHidden(topperForm);
+        topperForm.elements.year.value = new Date().getFullYear();
+        await refreshAdminData();
+      });
+
+      eventForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(eventForm);
+        const id = formData.get("id");
+        const uploadedImage = await fileToDataUrl(eventForm.elements.imageFile.files[0]);
+        const image = uploadedImage || formData.get("imageUrl") || formData.get("imageCurrent");
+
+        await adminApi(id ? `/api/events/${id}` : "/api/events", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify({
+            title: formData.get("title"),
+            date: formData.get("date"),
+            image,
+            caption: formData.get("caption")
+          })
+        });
+
+        eventForm.reset();
+        resetHidden(eventForm);
+        eventForm.elements.date.valueAsDate = new Date();
+        await refreshAdminData();
+      });
+
+      testForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(testForm);
+        const id = formData.get("id");
+
+        await adminApi(id ? `/api/test-results/${id}` : "/api/test-results", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify({
+            classLevel: formData.get("classLevel"),
+            testName: formData.get("testName"),
+            testDate: formData.get("testDate"),
+            totalMarks: formData.get("totalMarks"),
+            studentName: formData.get("studentName"),
+            obtainedMarks: formData.get("obtainedMarks")
+          })
+        });
+
+        testForm.reset();
+        resetHidden(testForm);
+        testForm.elements.testDate.valueAsDate = new Date();
+        await refreshAdminData();
+      });
+
+      contactForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(contactForm);
+
+        await adminApi("/api/contact", {
+          method: "PUT",
+          body: JSON.stringify({
+            email: formData.get("email"),
+            phone: formData.get("phone"),
+            whatsapp: formData.get("whatsapp"),
+            youtube: formData.get("youtube"),
+            facebook: formData.get("facebook"),
+            instagram: formData.get("instagram")
+          })
+        });
+
+        contactMessage.textContent = "Contact details saved.";
+        await refreshAdminData();
+      });
+
+      document.addEventListener("click", async (event) => {
+        const editTopperId = event.target.dataset.editTopper;
+        const editEventId = event.target.dataset.editEvent;
+        const editTestId = event.target.dataset.editTest;
+        const deleteCollection = event.target.dataset.delete;
+        const deleteId = event.target.dataset.id;
+
+        if (editTopperId) {
+          const topper = data.toppers.find((item) => item.id === editTopperId);
+          setAdminPanel("admin-home");
+          setFormValues(topperForm, {
+            id: topper.id,
+            photoCurrent: topper.photo,
+            classLevel: topper.classLevel,
+            year: topper.year,
+            rank: topper.rank,
+            name: topper.name,
+            percentage: topper.percentage
+          });
+        }
+
+        if (editEventId) {
+          const item = data.events.find((eventItem) => eventItem.id === editEventId);
+          setAdminPanel("admin-about");
+          setFormValues(eventForm, {
+            id: item.id,
+            imageCurrent: item.image,
+            title: item.title,
+            date: item.date,
+            imageUrl: item.image.startsWith("data:") ? "" : item.image,
+            caption: item.caption
+          });
+        }
+
+        if (editTestId) {
+          const result = data.testResults.find((item) => item.id === editTestId);
+          setAdminPanel("admin-students");
+          setFormValues(testForm, {
+            id: result.id,
+            classLevel: result.classLevel,
+            testName: result.testName,
+            testDate: result.testDate,
+            totalMarks: result.totalMarks,
+            studentName: result.studentName,
+            obtainedMarks: result.obtainedMarks
+          });
+        }
+
+        if (deleteCollection && deleteId) {
+          const confirmed = window.confirm("Delete this record?");
+          if (!confirmed) return;
+
+          await adminApi(`/api/${deleteCollection}/${deleteId}`, {
+            method: "DELETE"
+          });
+          await refreshAdminData();
+        }
+      });
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(loginForm);
+      loginMessage.textContent = "";
+
+      try {
+        const session = await api("/api/admin/login", {
+          method: "POST",
+          body: JSON.stringify({
+            password: formData.get("password")
+          })
+        });
+        setAdminSession(session);
+        loginForm.reset();
+        await showDashboard();
+      } catch (error) {
+        loginMessage.textContent = error.message;
+      }
     });
 
-    document.addEventListener("click", async (event) => {
-      const editTopperId = event.target.dataset.editTopper;
-      const editEventId = event.target.dataset.editEvent;
-      const editTestId = event.target.dataset.editTest;
-      const deleteCollection = event.target.dataset.delete;
-      const deleteId = event.target.dataset.id;
+    if (!getAdminToken()) {
+      showLogin();
+      return;
+    }
 
-      if (editTopperId) {
-        const topper = data.toppers.find((item) => item.id === editTopperId);
-        setFormValues(topperForm, {
-          id: topper.id,
-          photoCurrent: topper.photo,
-          classLevel: topper.classLevel,
-          year: topper.year,
-          rank: topper.rank,
-          name: topper.name,
-          percentage: topper.percentage
-        });
-      }
-
-      if (editEventId) {
-        const item = data.events.find((eventItem) => eventItem.id === editEventId);
-        setFormValues(eventForm, {
-          id: item.id,
-          imageCurrent: item.image,
-          title: item.title,
-          date: item.date,
-          imageUrl: item.image.startsWith("data:") ? "" : item.image,
-          caption: item.caption
-        });
-      }
-
-      if (editTestId) {
-        const result = data.testResults.find((item) => item.id === editTestId);
-        setFormValues(testForm, {
-          id: result.id,
-          classLevel: result.classLevel,
-          testName: result.testName,
-          testDate: result.testDate,
-          totalMarks: result.totalMarks,
-          studentName: result.studentName,
-          obtainedMarks: result.obtainedMarks
-        });
-      }
-
-      if (deleteCollection && deleteId) {
-        const confirmed = window.confirm("Delete this record?");
-        if (!confirmed) return;
-
-        await api(`/api/${deleteCollection}/${deleteId}`, {
-          method: "DELETE"
-        });
-        data = await loadData();
-        renderAdmin(data);
-      }
-    });
+    try {
+      await adminApi("/api/admin/session");
+      await showDashboard();
+    } catch (error) {
+      clearAdminSession();
+      showLogin("Please login again.");
+    }
   }
 
   const initializers = {
     home: initHome,
     about: initAbout,
+    contact: initContact,
     "student-data": initStudentData,
     admin: initAdmin
   };
