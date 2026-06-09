@@ -27,7 +27,7 @@
           <a href="/about.html">About</a>
           <a href="/student-data.html">Student Data</a>
           <a href="/contact.html">Contact</a>
-          <a class="admin-link active" href="https://ssvt-notice.onrender.com/publish">Notice</a>
+          <a class="admin-link active" href="/admin.html">Admin</a>
         </div>
       </nav>
     </header>
@@ -37,144 +37,227 @@
         <div class="container">
           <p class="eyebrow">Admin Panel</p>
           <h1>Manage SSVT Website Data</h1>
-          <p>Add, edit, and delete public records for local testing.</p>
+          <p>Separate work panels for each public section.</p>
         </div>
       </section>
 
-      <section class="section-block admin-section">
-        <div class="container admin-grid">
-          <article class="admin-card">
-            <h2>Home Toppers</h2>
-            <form id="topperForm" class="admin-form">
-              <input type="hidden" name="id" />
-              <input type="hidden" name="photoCurrent" />
-              <div class="form-row">
-                <label>
-                  <span>Class</span>
-                  <select name="classLevel" required>
-                    <option value="10">10th</option>
-                    <option value="9">9th</option>
-                    <option value="8">8th</option>
-                    <option value="7">7th</option>
-                    <option value="6">6th</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Year</span>
-                  <input type="number" name="year" min="2000" max="2100" required />
-                </label>
-                <label>
-                  <span>Rank</span>
-                  <input type="number" name="rank" min="1" required />
-                </label>
-              </div>
-              <div class="form-row">
-                <label>
-                  <span>Student Name</span>
-                  <input type="text" name="name" maxlength="80" required />
-                </label>
-                <label>
-                  <span>Percentage</span>
-                  <input type="number" name="percentage" min="1" max="100" step="0.01" required />
-                </label>
-              </div>
+      <section id="adminLoginPanel" class="section-block admin-login">
+        <div class="container">
+          <article class="admin-card auth-card">
+            <p class="eyebrow">Secure Access</p>
+            <h2>Admin Login</h2>
+            <form id="adminLoginForm" class="admin-form">
               <label>
-                <span>Student Photo</span>
-                <input type="file" name="photoFile" accept="image/*" />
+                <span>Password</span>
+                <input type="password" name="password" autocomplete="current-password" required />
               </label>
-              <div class="form-actions">
-                <button class="btn primary" type="submit">Save Topper</button>
-                <button class="btn secondary" type="reset" data-reset-form>Clear</button>
-              </div>
+              <button class="btn primary" type="submit">Login</button>
+              <p id="adminLoginMessage" class="form-message" role="status"></p>
             </form>
-            <div id="topperAdminList" class="admin-list"></div>
           </article>
+        </div>
+      </section>
 
-          <article class="admin-card">
-            <h2>Event Pictures</h2>
-            <form id="eventForm" class="admin-form">
-              <input type="hidden" name="id" />
-              <input type="hidden" name="imageCurrent" />
-              <div class="form-row">
-                <label>
-                  <span>Title</span>
-                  <input type="text" name="title" maxlength="90" required />
-                </label>
-                <label>
-                  <span>Date</span>
-                  <input type="date" name="date" required />
-                </label>
-              </div>
-              <label>
-                <span>Picture Upload</span>
-                <input type="file" name="imageFile" accept="image/*" />
-              </label>
-              <label>
-                <span>Picture URL</span>
-                <input type="url" name="imageUrl" placeholder="https://example.com/photo.jpg" />
-              </label>
-              <label>
-                <span>Caption</span>
-                <textarea name="caption" rows="3" maxlength="220"></textarea>
-              </label>
-              <div class="form-actions">
-                <button class="btn primary" type="submit">Save Event</button>
-                <button class="btn secondary" type="reset" data-reset-form>Clear</button>
-              </div>
-            </form>
-            <div id="eventAdminList" class="admin-list"></div>
-          </article>
+      <section id="adminDashboard" class="section-block admin-dashboard" hidden>
+        <div class="container admin-dashboard-header">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h2>Website Work Panels</h2>
+          </div>
+          <button id="adminLogoutButton" class="btn secondary" type="button">Logout</button>
+        </div>
 
-          <article class="admin-card wide">
-            <h2>Test Results</h2>
-            <form id="testForm" class="admin-form">
-              <input type="hidden" name="id" />
-              <div class="form-row">
-                <label>
-                  <span>Class</span>
-                  <select name="classLevel" required>
-                    <option value="10">10th</option>
-                    <option value="9">9th</option>
-                    <option value="8">8th</option>
-                    <option value="7">7th</option>
-                    <option value="6">6th</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Test Name</span>
-                  <input type="text" name="testName" maxlength="80" required />
-                </label>
-                <label>
-                  <span>Test Date</span>
-                  <input type="date" name="testDate" required />
-                </label>
-              </div>
-              <div class="form-row">
-                <label>
-                  <span>Student Name</span>
-                  <input type="text" name="studentName" maxlength="80" required />
-                </label>
-                <label>
-                  <span>Total Marks</span>
-                  <input type="number" name="totalMarks" min="1" required />
-                </label>
-                <label>
-                  <span>Obtained Marks</span>
-                  <input type="number" name="obtainedMarks" min="0" required />
-                </label>
-              </div>
-              <div class="form-actions">
-                <button class="btn primary" type="submit">Save Result</button>
-                <button class="btn secondary" type="reset" data-reset-form>Clear</button>
-              </div>
-            </form>
-            <div id="testAdminList" class="admin-list"></div>
-          </article>
+        <div class="container admin-shell">
+          <aside class="admin-panel-nav" aria-label="Admin sections">
+            <a class="active" href="#admin-home" data-admin-panel="admin-home">Home Toppers</a>
+            <a href="#admin-about" data-admin-panel="admin-about">About Gallery</a>
+            <a href="#admin-students" data-admin-panel="admin-students">Student Data</a>
+            <a href="#admin-reviews" data-admin-panel="admin-reviews">Reviews</a>
+            <a href="#admin-contact" data-admin-panel="admin-contact">Contact</a>
+          </aside>
 
-          <article class="admin-card wide">
-            <h2>Public Reviews</h2>
-            <div id="reviewAdminList" class="admin-list"></div>
-          </article>
+          <div class="admin-panel-area">
+            <section id="admin-home" class="admin-panel">
+              <article class="admin-card">
+                <h2>Home Toppers</h2>
+                <form id="topperForm" class="admin-form">
+                  <input type="hidden" name="id" />
+                  <input type="hidden" name="photoCurrent" />
+                  <div class="form-row">
+                    <label>
+                      <span>Class</span>
+                      <select name="classLevel" required>
+                        <option value="10">10th</option>
+                        <option value="9">9th</option>
+                        <option value="8">8th</option>
+                        <option value="7">7th</option>
+                        <option value="6">6th</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>Year</span>
+                      <input type="number" name="year" min="2000" max="2100" required />
+                    </label>
+                    <label>
+                      <span>Rank</span>
+                      <input type="number" name="rank" min="1" required />
+                    </label>
+                  </div>
+                  <div class="form-row">
+                    <label>
+                      <span>Student Name</span>
+                      <input type="text" name="name" maxlength="80" required />
+                    </label>
+                    <label>
+                      <span>Percentage</span>
+                      <input type="number" name="percentage" min="1" max="100" step="0.01" required />
+                    </label>
+                  </div>
+                  <label>
+                    <span>Student Photo</span>
+                    <input type="file" name="photoFile" accept="image/*" />
+                  </label>
+                  <div class="form-actions">
+                    <button class="btn primary" type="submit">Save Topper</button>
+                    <button class="btn secondary" type="reset" data-reset-form>Clear</button>
+                  </div>
+                </form>
+                <div id="topperAdminList" class="admin-list"></div>
+              </article>
+            </section>
+
+            <section id="admin-about" class="admin-panel" hidden>
+              <article class="admin-card">
+                <h2>About Gallery</h2>
+                <form id="eventForm" class="admin-form">
+                  <input type="hidden" name="id" />
+                  <input type="hidden" name="imageCurrent" />
+                  <div class="form-row">
+                    <label>
+                      <span>Title</span>
+                      <input type="text" name="title" maxlength="90" required />
+                    </label>
+                    <label>
+                      <span>Date</span>
+                      <input type="date" name="date" required />
+                    </label>
+                  </div>
+                  <label>
+                    <span>Picture Upload</span>
+                    <input type="file" name="imageFile" accept="image/*" />
+                  </label>
+                  <label>
+                    <span>Picture URL</span>
+                    <input type="url" name="imageUrl" placeholder="https://example.com/photo.jpg" />
+                  </label>
+                  <label>
+                    <span>Caption</span>
+                    <textarea name="caption" rows="3" maxlength="220"></textarea>
+                  </label>
+                  <div class="form-actions">
+                    <button class="btn primary" type="submit">Save Event</button>
+                    <button class="btn secondary" type="reset" data-reset-form>Clear</button>
+                  </div>
+                </form>
+                <div id="eventAdminList" class="admin-list"></div>
+              </article>
+            </section>
+
+            <section id="admin-students" class="admin-panel" hidden>
+              <article class="admin-card">
+                <h2>Student Test Results</h2>
+                <form id="testForm" class="admin-form">
+                  <input type="hidden" name="id" />
+                  <div class="form-row">
+                    <label>
+                      <span>Class</span>
+                      <select name="classLevel" required>
+                        <option value="10">10th</option>
+                        <option value="9">9th</option>
+                        <option value="8">8th</option>
+                        <option value="7">7th</option>
+                        <option value="6">6th</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>Test Name</span>
+                      <input type="text" name="testName" maxlength="80" required />
+                    </label>
+                    <label>
+                      <span>Test Date</span>
+                      <input type="date" name="testDate" required />
+                    </label>
+                  </div>
+                  <div class="form-row">
+                    <label>
+                      <span>Student Name</span>
+                      <input type="text" name="studentName" maxlength="80" required />
+                    </label>
+                    <label>
+                      <span>Total Marks</span>
+                      <input type="number" name="totalMarks" min="1" required />
+                    </label>
+                    <label>
+                      <span>Obtained Marks</span>
+                      <input type="number" name="obtainedMarks" min="0" required />
+                    </label>
+                  </div>
+                  <div class="form-actions">
+                    <button class="btn primary" type="submit">Save Result</button>
+                    <button class="btn secondary" type="reset" data-reset-form>Clear</button>
+                  </div>
+                </form>
+                <div id="testAdminList" class="admin-list"></div>
+              </article>
+            </section>
+
+            <section id="admin-reviews" class="admin-panel" hidden>
+              <article class="admin-card">
+                <h2>Public Reviews</h2>
+                <div id="reviewAdminList" class="admin-list"></div>
+              </article>
+            </section>
+
+            <section id="admin-contact" class="admin-panel" hidden>
+              <article class="admin-card">
+                <h2>Contact Details</h2>
+                <form id="contactForm" class="admin-form">
+                  <div class="form-row">
+                    <label>
+                      <span>Email</span>
+                      <input type="email" name="email" required />
+                    </label>
+                    <label>
+                      <span>Phone</span>
+                      <input type="text" name="phone" required />
+                    </label>
+                    <label>
+                      <span>WhatsApp Number</span>
+                      <input type="text" name="whatsapp" required />
+                    </label>
+                  </div>
+                  <div class="form-row">
+                    <label>
+                      <span>YouTube Link</span>
+                      <input type="url" name="youtube" placeholder="https://youtube.com/..." />
+                    </label>
+                    <label>
+                      <span>Facebook Link</span>
+                      <input type="url" name="facebook" placeholder="https://facebook.com/..." />
+                    </label>
+                    <label>
+                      <span>Instagram Link</span>
+                      <input type="url" name="instagram" placeholder="https://instagram.com/..." />
+                    </label>
+                  </div>
+                  <div class="form-actions">
+                    <button class="btn primary" type="submit">Save Contact</button>
+                  </div>
+                  <p id="contactAdminMessage" class="form-message" role="status"></p>
+                </form>
+              </article>
+            </section>
+          </div>
         </div>
       </section>
     </main>
