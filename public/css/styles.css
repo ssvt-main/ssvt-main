@@ -624,6 +624,69 @@ textarea {
   padding-top: 34px;
 }
 
+.admin-login {
+  padding-top: 34px;
+}
+
+.auth-card {
+  max-width: 440px;
+}
+
+.admin-dashboard {
+  padding-top: 34px;
+}
+
+.admin-dashboard-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-dashboard-header h2 {
+  margin: 0;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  line-height: 1.15;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.admin-panel-nav {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 10px;
+  box-shadow: 0 10px 28px rgba(24, 33, 29, 0.06);
+}
+
+.admin-panel-nav a {
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 800;
+  padding: 11px 12px;
+}
+
+.admin-panel-nav a:hover,
+.admin-panel-nav a.active {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.admin-panel-area,
+.admin-panel {
+  min-width: 0;
+}
+
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -753,9 +816,19 @@ textarea {
   }
 
   .with-control,
-  .footer-grid {
+  .footer-grid,
+  .admin-dashboard-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-nav {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .form-row {
@@ -802,6 +875,10 @@ textarea {
   .section-block,
   .page-title {
     padding-block: 36px;
+  }
+
+  .admin-panel-nav {
+    grid-template-columns: 1fr;
   }
 
   .table-wrap {
