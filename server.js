@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { randomUUID } = require("crypto");
+const { randomBytes, randomUUID, timingSafeEqual } = require("crypto");
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -15,6 +15,10 @@ const CORS_ORIGINS = (process.env.CORS_ORIGINS || "*")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const ADMIN_SESSION_HOURS = Math.max(1, Number(process.env.ADMIN_SESSION_HOURS || 12));
+const ADMIN_SESSION_TTL_MS = ADMIN_SESSION_HOURS * 60 * 60 * 1000;
+const adminSessions = new Map();
 
 const COLLECTION_NAMES = {
   toppers: "toppers",
@@ -22,6 +26,8 @@ const COLLECTION_NAMES = {
   reviews: "reviews",
   testResults: "testResults"
 };
+
+const SETTINGS_COLLECTION = "settings";
 
 const DEFAULT_DATA = {
   toppers: [
@@ -187,7 +193,16 @@ const DEFAULT_DATA = {
       studentName: "Aarav Sharma",
       obtainedMarks: 72
     }
-  ]
+  ],
+  contact: {
+    id: "contact",
+    email: "ssvtcoaching@example.com",
+    phone: "+91 98765 43210",
+    whatsapp: "919876543210",
+    youtube: "#",
+    facebook: "#",
+    instagram: "#"
+  }
 };
 
 const MIME_TYPES = {
@@ -207,6 +222,26 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function withDefaultData(data) {
+  const merged = clone(DEFAULT_DATA);
+
+  Object.keys(COLLECTION_NAMES).forEach((key) => {
+    if (Array.isArray(data[key])) {
+      merged[key] = data[key];
+    }
+  });
+
+  if (data.contact && typeof data.contact === "object") {
+    merged.contact = {
+      ...DEFAULT_DATA.contact,
+      ...data.contact,
+      id: "contact"
+    };
+  }
+
+  return merged;
+}
+
 function ensureDataFile() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -219,7 +254,7 @@ function ensureDataFile() {
 
 function readLocalData() {
   ensureDataFile();
-  return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+  return withDefaultData(JSON.parse(fs.readFileSync(DATA_FILE, "utf8")));
 }
 
 function writeLocalData(data) {
@@ -264,6 +299,15 @@ function createJsonStorage() {
       data[key].splice(index, 1);
       writeLocalData(data);
       return true;
+    },
+    async getContact() {
+      return readLocalData().contact;
+    },
+    async updateContact(contact) {
+      const data = readLocalData();
+      data.contact = contact;
+      writeLocalData(data);
+      return contact;
     }
   };
 }
@@ -285,11 +329,14 @@ async function createMongoStorage() {
     return db.collection(COLLECTION_NAMES[key]);
   }
 
+  const settings = db.collection(SETTINGS_COLLECTION);
+
   await Promise.all(
     Object.keys(COLLECTION_NAMES).map((key) =>
       collection(key).createIndex({ id: 1 }, { unique: true })
     )
   );
+  await settings.createIndex({ id: 1 }, { unique: true });
 
   const shouldSeed = process.env.SEED_DATABASE !== "false";
   if (shouldSeed) {
@@ -305,6 +352,11 @@ async function createMongoStorage() {
     }
   }
 
+  const contact = await settings.findOne({ id: "contact" });
+  if (!contact) {
+    await settings.insertOne(clone(DEFAULT_DATA.contact));
+  }
+
   return {
     name: `MongoDB database "${MONGODB_DB_NAME}"`,
     async getAll() {
@@ -314,7 +366,18 @@ async function createMongoStorage() {
           await collection(key).find({}, { projection: { _id: 0 } }).toArray()
         ])
       );
-      return Object.fromEntries(entries);
+      const contactSettings =
+        (await settings.findOne({ id: "contact" }, { projection: { _id: 0 } })) ||
+        clone(DEFAULT_DATA.contact);
+
+      return {
+        ...Object.fromEntries(entries),
+        contact: {
+          ...DEFAULT_DATA.contact,
+          ...contactSettings,
+          id: "contact"
+        }
+      };
     },
     async getById(key, itemId) {
       return collection(key).findOne({ id: itemId }, { projection: { _id: 0 } });
@@ -330,6 +393,20 @@ async function createMongoStorage() {
     async deleteById(key, itemId) {
       const result = await collection(key).deleteOne({ id: itemId });
       return result.deletedCount > 0;
+    },
+    async getContact() {
+      const contactSettings =
+        (await settings.findOne({ id: "contact" }, { projection: { _id: 0 } })) ||
+        clone(DEFAULT_DATA.contact);
+      return {
+        ...DEFAULT_DATA.contact,
+        ...contactSettings,
+        id: "contact"
+      };
+    },
+    async updateContact(contactSettings) {
+      await settings.replaceOne({ id: "contact" }, contactSettings, { upsert: true });
+      return contactSettings;
     },
     async close() {
       await client.close();
@@ -369,7 +446,75 @@ function setCorsHeaders(req, res) {
 
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+}
+
+function safeCompare(a, b) {
+  const first = Buffer.from(String(a));
+  const second = Buffer.from(String(b));
+
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  return timingSafeEqual(first, second);
+}
+
+function cleanExpiredAdminSessions() {
+  const now = Date.now();
+  for (const [token, session] of adminSessions.entries()) {
+    if (session.expiresAt <= now) {
+      adminSessions.delete(token);
+    }
+  }
+}
+
+function createAdminSession() {
+  cleanExpiredAdminSessions();
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = Date.now() + ADMIN_SESSION_TTL_MS;
+  adminSessions.set(token, { expiresAt });
+  return {
+    token,
+    expiresAt: new Date(expiresAt).toISOString()
+  };
+}
+
+function getBearerToken(req) {
+  const header = req.headers.authorization || "";
+  if (!header.startsWith("Bearer ")) {
+    return "";
+  }
+
+  return header.slice("Bearer ".length).trim();
+}
+
+function isAdminAuthorized(req) {
+  cleanExpiredAdminSessions();
+  const token = getBearerToken(req);
+  const session = adminSessions.get(token);
+  return Boolean(session && session.expiresAt > Date.now());
+}
+
+function requireAdmin(req, res) {
+  if (isAdminAuthorized(req)) {
+    return true;
+  }
+
+  sendError(res, 401, "Admin login required.");
+  return false;
+}
+
+function adminAuthRequired(req, pathname) {
+  if (req.method === "GET") {
+    return false;
+  }
+
+  if (pathname === "/api/reviews" && req.method === "POST") {
+    return false;
+  }
+
+  return Boolean(collectionFor(pathname) || pathname === "/api/contact");
 }
 
 function readBody(req) {
@@ -480,6 +625,27 @@ function normalizeReview(body, existing = {}) {
   };
 }
 
+function normalizeContact(body, existing = {}) {
+  const email = text(body.email, existing.email);
+  const phone = text(body.phone, existing.phone);
+  const whatsapp = text(body.whatsapp, existing.whatsapp);
+
+  if (!email || !phone || !whatsapp) {
+    throw new Error("Email, phone, and WhatsApp are required.");
+  }
+
+  return {
+    ...existing,
+    id: "contact",
+    email,
+    phone,
+    whatsapp,
+    youtube: text(body.youtube, existing.youtube || "#") || "#",
+    facebook: text(body.facebook, existing.facebook || "#") || "#",
+    instagram: text(body.instagram, existing.instagram || "#") || "#"
+  };
+}
+
 function normalizeTestResult(body, existing = {}) {
   const classLevel = number(body.classLevel, existing.classLevel);
   const testName = text(body.testName, existing.testName);
@@ -542,6 +708,66 @@ async function handleApi(req, res, pathname, storage) {
       ok: true,
       storage: storage.name
     });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/admin/login") {
+    if (!ADMIN_PASSWORD) {
+      sendError(res, 503, "Admin password is not configured. Set ADMIN_PASSWORD in Render environment variables.");
+      return;
+    }
+
+    const body = await readBody(req);
+    if (!safeCompare(body.password || "", ADMIN_PASSWORD)) {
+      sendError(res, 401, "Invalid admin password.");
+      return;
+    }
+
+    sendJson(res, 200, createAdminSession());
+    return;
+  }
+
+  if (req.method === "GET" && pathname === "/api/admin/session") {
+    if (!requireAdmin(req, res)) {
+      return;
+    }
+
+    const token = getBearerToken(req);
+    const session = adminSessions.get(token);
+    sendJson(res, 200, {
+      ok: true,
+      expiresAt: new Date(session.expiresAt).toISOString()
+    });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/admin/logout") {
+    const token = getBearerToken(req);
+    if (token) {
+      adminSessions.delete(token);
+    }
+
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (req.method === "GET" && pathname === "/api/contact") {
+    sendJson(res, 200, await storage.getContact());
+    return;
+  }
+
+  if (req.method === "PUT" && pathname === "/api/contact") {
+    if (!requireAdmin(req, res)) {
+      return;
+    }
+
+    const body = await readBody(req);
+    const contact = normalizeContact(body, await storage.getContact());
+    sendJson(res, 200, await storage.updateContact(contact));
+    return;
+  }
+
+  if (adminAuthRequired(req, pathname) && !requireAdmin(req, res)) {
     return;
   }
 
